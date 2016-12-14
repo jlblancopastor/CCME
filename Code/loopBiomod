@@ -1,17 +1,17 @@
 #### BIOMOD LOOP FOR EVERY SPECIES IN THE DATASET ####
 #### 0. PREPARATORY PROCEDURES ####
 
-packages<-c("raster", "biomod2", "dismo","mgcv","rasterVis","RColorBrewer","rgdal","tidyr","gstat","ecospat","shapefiles","rgeos","sp","maptools")
+packages<-c("raster", "biomod2", "dismo","mgcv","rasterVis","RColorBrewer","rgdal","mgcv","shapefiles","rgeos","sp","maptools", "maps")
 lapply(packages, require, character.only=T)
 
-species.list("","") #a list containing the names of the species written exactly as in the qgis folder where all shapefiles are stored
+species.list("Phyteuma_globulariifolium","Linaria_glacialis") #a list containing the names of the species written exactly as in the qgis folder where all shapefiles are stored
 #### 1. BIOMOD PARAMETERS ####
 #### 2. LOOP ####
 
 for (i in species.list) {
-setwd("") # where the shapefiles are
-shape.species<-readShapePoints(i) #creates a shapefile of points for the ith species
-shape.mountain<-mask(readShapePoly("mountains")) #this keeps the mountain boundaries for the ith species
+  setwd("") # where the shapefiles are
+  shape.species<-readShapePoints(i) #creates a shapefile of points for the ith species
+  shape.mountain<-mask(readShapePoly("mountains")) #this keeps the mountain boundaries for the ith species
 
 
 }
