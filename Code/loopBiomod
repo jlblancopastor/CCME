@@ -11,7 +11,5 @@ species.list("Phyteuma_globulariifolium","Linaria_glacialis") #a list containing
 for (i in species.list) {
   setwd("") # where the shapefiles are
   shape.species<-readShapePoints(i) #creates a shapefile of points for the ith species
-  shape.mountain<-mask(readShapePoly("mountains")) #this keeps the mountain boundaries for the ith species
-
-
+  shape.mountain<-readShapePoly("mountains") #this must keep the mountain boundaries for the ith species
 }
