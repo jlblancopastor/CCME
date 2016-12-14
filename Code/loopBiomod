@@ -11,8 +11,7 @@ species.list("","") #a list containing the names of the species written exactly 
 for (i in species.list) {
 setwd("") # where the shapefiles are
 shape.species<-readShapePoints(i) #creates a shapefile of points for the ith species
-setwd("") #where the shapefile of mountain boundaries is. Ensured that it is properly clipped.
-shape.mountain<-mask(readShapePoly("")) #this keeps the mountain boundaries for the ith species
+shape.mountain<-mask(readShapePoly("mountains")) #this keeps the mountain boundaries for the ith species
 
 
 }
