@@ -12,5 +12,6 @@ for (i in species.list) {
   setwd("") # where the shapefiles are. Currently for this is in "F:/Climatechange/Qgis"
   shape.species<-readShapePoints(i,proj4string = CRS(geoproj)) #creates a shapefile of points for the ith species
   shape.mountain<-readShapePoly("mountains",proj4string = CRS(geoproj)) #this must keep the mountain boundaries for the ith species
-  
+  names.mountain<-levels(select.mountain[,1])
+  selected.shape.mountain<-shape.mountain[shape.mountain$Name %in% names.mountain,]
 }
