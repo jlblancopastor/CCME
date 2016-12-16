@@ -16,4 +16,9 @@ for (i in species.list) {
   select.mountain<-as.data.frame(droplevels(select.mountain$Name)) #erase non-used levels
   names.mountain<-levels(select.mountain[,1]) #selects the names of the mountain ranges
   selected.shape.mountain<-shape.mountain[shape.mountain$Name %in% names.mountain,] #subsets the polygons with species occurrences
+  unzip("CHELSA_tmax_1_1979-2013_land.zip")
+  message(paste("masking tmax01 for",i,sep=" "),appendLF=T)
+  tmax01<-mask(crop(raster("CHELSA_tmax_1_1979-2013_land.tif",crs=geoproj),selected.shape.mountain),selected.shape.mountain)
+  file.remove("CHELSA_tmax_1_1979-2013_land.tif")
+  
 }
