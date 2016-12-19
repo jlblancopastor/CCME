@@ -5,6 +5,14 @@ packages<-c("raster", "biomod2", "dismo","mgcv","rasterVis","RColorBrewer","rgda
 lapply(packages, require, character.only=T)
 geoproj<-"+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
 species.list("Phyteuma_globulariifolium","Linaria_glacialis") #a list containing the names of the species written exactly as in the qgis folder where all shapefiles are stored
+
+presence.absence.raster <- function (mask.raster,species.data,raster.label="") {
+mask.raster[!is.na(mask.raster)] <- 0
+speciesRaster <- rasterize(species.data,mask.raster,field=1)
+speciesRaster <- merge(speciesRaster,mask.raster)
+names(speciesRaster) <- raster.label
+return(speciesRaster)
+}
 #### 1. BIOMOD PARAMETERS ####
 #### 2. LOOP ####
 
@@ -23,5 +31,11 @@ for (i in species.list) {
     message(paste("masking tmax01 for",i,sep=" "),appendLF=T)
     tmax01<-mask(crop(raster("CHELSA_tmax_1_1979-2013_land.tif",crs=geoproj),selected.shape.mountain),selected.shape.mountain)
     file.remove("CHELSA_tmax_1_1979-2013_land.tif")
+    ### etc.
+    
+    
+  #### 2.2 BIOMOD MODELLING #### MODEL CALIBRATION
+  
+       2.1
   
 }
