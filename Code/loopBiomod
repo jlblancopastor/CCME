@@ -16,24 +16,34 @@ return(speciesRaster)
 #### 1. BIOMOD PARAMETERS ####
 #this is set up, for now, in a separate branch
 #### 2. LOOP ####
-
-for (i in species.list) {
+#species.list shall be created directly with a search string with regmatches()
+for (s in species.list) {
   setwd("") # where the shapefiles are. Currently for this is in "F:/Climatechange/Qgis"
-  shape.species<-readShapePoints(i,proj4string = CRS(geoproj)) #creates a shapefile of points for the ith species
+  shape.species<-readShapePoints(s,proj4string = CRS(geoproj)) #creates a shapefile of points for the ith species
   shape.mountain<-readShapePoly("mountains",proj4string = CRS(geoproj)) #reads the global mountain polygon shapefile
   select.mountain<-over(shape.species,shape.mountain)  #overlays species ocurrences with  
   select.mountain<-as.data.frame(droplevels(select.mountain$Name)) #erase non-used levels
   names.mountain<-levels(select.mountain[,1]) #selects the names of the mountain ranges
   
   #### 2.1 Begin reading shapefiles and preparing stack of predictors
-  
-    selected.shape.mountain<-shape.mountain[shape.mountain$Name %in% names.mountain,] #subsets the polygons with species occurrences
+  variable.list<-c("prec","tmin","tmax")
+  initial.months<-c("1","2","3","4","5","6","7","8","9","10","11","12")
+  final.months<-c("01","02","03","04","05","06","07","08","09","10","11","12")
+  selected.shape.mountain<-shape.mountain[shape.mountain$Name %in% names.mountain,] #subsets the polygons with species occurrences
     unzip("CHELSA_tmax_1_1979-2013_land.zip")
     message(paste("masking tmax01 for",i,sep=" "),appendLF=T)
     tmax01<-mask(crop(raster("CHELSA_tmax_1_1979-2013_land.tif",crs=geoproj),selected.shape.mountain),selected.shape.mountain)
     file.remove("CHELSA_tmax_1_1979-2013_land.tif")
     ### etc.
-    
+    ### lines 35-38 and following must be replaced by loop:
+   #create empty rasterStack
+   for (i in variable.list){
+      target.variable<-i
+      for (j in initial.months){
+      
+      
+      }
+    }
     
   #### 2.2 BIOMOD MODELLING #### MODEL CALIBRATION
   
