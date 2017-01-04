@@ -15,8 +15,9 @@ return(speciesRaster)
 }
 #### 1. BIOMOD PARAMETERS ####
 #this is set up, for now, in a separate branch
-#### 2. LOOP ####
-#species.list shall be created directly with a search string with regmatches()
+#### 2. LOOP ###
+species.list<-list.files(pattern="\\.shp$")
+gsub(".pdf",replacement="",list)
 for (s in species.list) {
   setwd("") # where the shapefiles are. Currently for this is in "F:/Climatechange/Qgis"
   shape.species<-readShapePoints(s,proj4string = CRS(geoproj)) #creates a shapefile of points for the ith species
@@ -34,6 +35,12 @@ for (s in species.list) {
     message(paste("masking tmax01 for",i,sep=" "),appendLF=T)
     tmax01<-mask(crop(raster("CHELSA_tmax_1_1979-2013_land.tif",crs=geoproj),selected.shape.mountain),selected.shape.mountain)
     file.remove("CHELSA_tmax_1_1979-2013_land.tif")
+    
+    unzip("tmax02.zip") #original download names of CHELSA variables should be replaced
+    message(paste("masking tmax01 for",i,sep=" "),appendLF=T)
+    tmax02<-mask(crop(raster("CHELSA_tmax_2_1979-2013_land.tif",crs=geoproj),selected.shape.mountain),selected.shape.mountain)
+    file.remove("CHELSA_tmax_2_1979-2013_land.tif")
+    
     ### etc.
    
     }
