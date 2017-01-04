@@ -16,10 +16,11 @@ return(speciesRaster)
 #### 1. BIOMOD PARAMETERS ####
 #this is set up, for now, in a separate branch
 #### 2. LOOP ###
+setwd("") # where the shapefiles are. Currently for this is in "F:/Climatechange/Qgis"
 species.list<-list.files(pattern="\\.shp$")
 gsub(".pdf",replacement="",list)
 for (s in species.list) {
-  setwd("") # where the shapefiles are. Currently for this is in "F:/Climatechange/Qgis"
+  
   shape.species<-readShapePoints(s,proj4string = CRS(geoproj)) #creates a shapefile of points for the ith species
   shape.mountain<-readShapePoly("mountains",proj4string = CRS(geoproj)) #reads the global mountain polygon shapefile
   select.mountain<-over(shape.species,shape.mountain)  #overlays species ocurrences with  
@@ -41,6 +42,10 @@ for (s in species.list) {
     tmax02<-mask(crop(raster("CHELSA_tmax_2_1979-2013_land.tif",crs=geoproj),selected.shape.mountain),selected.shape.mountain)
     file.remove("CHELSA_tmax_2_1979-2013_land.tif")
     
+    unzip("tmax03.zip") #original download names of CHELSA variables should be replaced
+    message(paste("masking tmax03 for",i,sep=" "),appendLF=T)
+    tmax03<-mask(crop(raster("CHELSA_tmax_2_1979-2013_land.tif",crs=geoproj),selected.shape.mountain),selected.shape.mountain)
+    file.remove("CHELSA_tmax_3_1979-2013_land.tif")
     ### etc.
    
     }
