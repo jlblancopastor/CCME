@@ -47,11 +47,101 @@ for (s in species.list) {
     tmax03<-mask(crop(raster("CHELSA_tmax_2_1979-2013_land.tif",crs=geoproj),selected.shape.mountain),selected.shape.mountain)
     file.remove("CHELSA_tmax_3_1979-2013_land.tif")
     ### etc.
-   
+    biov<-biovars(tmax,tmin,prec)
+    #now, we subset the ones to be used
     }
     
   #### 2.2 BIOMOD MODELLING #### MODEL CALIBRATION
   
        #2.2.1 Calibration dataset
-  
+        
+species.coords<-coords(s)
+species<-s
+viola<-as.data.frame(presence.absence.raster(bio01,species.coords,raster.label=species),xy=TRUE) # check if bio01 is one of the biovars to use
+species.na<-species[,3]
+species.na[species.na==0]="NA"
+species.na<-cbind(species[,1:2],species.na)
+colnames(species.na)<-c("x","y",s)
+
+predictores<-stack() # to be determined what biovars are selected.
+
+# the name of studied species
+myRespName <- s
+# the presence/absences data for our species
+myResp <- as.numeric(species.na[,myRespName])
+myResp[myResp == 2]  <- "NA"
+myResp<-as.numeric(myResp)
+# the XY coordinates of species data
+myRespXY <- species.na[,c("x","y")]
+
+
+data<-BIOMOD_FormatingData(resp.var=myResp,
+                            expl.var=predictors,
+                            resp.xy = myRespXY,
+                            resp.name = myRespName,
+                            eval.resp.var = NULL,
+                            eval.expl.var = NULL,
+                            eval.resp.xy = NULL,
+                            PA.nb.rep = 4,
+                            PA.nb.absences = nrow(species.coords)*6, #this is the minimal number which is optimal for me
+                            PA.strategy = 'random',
+                            na.rm = TRUE)
+# rasters or any supported format by the raster package)
+rm() #remove the predictors used here
+
+#### 5.2 MODELING ####
+modelss <- BIOMOD_Modeling(
+  datos,
+  models = c('GBM','RF',"GLM","GAM","MARS","ANN"), #GAM is going to be trickier for species with a scarce number of points
+  #models.options = myBiomodOption, #chech the script which has been set aside in github
+  NbRunEval=5,
+  DataSplit=80,
+  VarImport=1,
+  prevalence=0.5,
+  models.eval.meth = c("ROC",'TSS'),
+  SaveObj = TRUE,
+  rescal.all.models = FALSE,
+  do.full.models = FALSE,
+  modeling.id = paste(myRespName,"FirstModeling",sep=""))
+
+rm(data)
+
+proj.modelos<-BIOMOD_Projection(modelos,
+              new.env=predictores,
+              proj.name=s,
+              xy.new.env = NULL,
+              selected.models = 'all',
+              binary.meth = "TSS",
+              filtered.meth = "TSS","ROC",
+              compress = TRUE,
+              build.clamping.mask = FALSE)
+
+rm(predictorss)
+
+modelss.ensemble.mean.weight<- BIOMOD_EnsembleModeling( models,
+                                            chosen.models = 'all',
+                                            em.by = 'all',
+                                            eval.metric = 'all',
+                                            eval.metric.quality.threshold = c(0.8,0.8),
+                                            models.eval.meth = c("ROC",'TSS'),
+                                            prob.mean = FALSE,
+                                            prob.cv = FALSE,
+                                            prob.ci = FALSE,
+                                            prob.ci.alpha = 0.05,
+                                            prob.median = FALSE,
+                                            committee.averaging = FALSE,
+                                            prob.mean.weight = TRUE,
+                                            prob.mean.weight.decay = 'proportional',
+                                            VarImport = 1)
+
+
+ 
+ensemble.pres.mean.weight<-BIOMOD_EnsembleForecasting( modelos.ensemble.mean.weight,
+                                           projection.output = proj.modelos,
+                                           selected.models = 'all',
+                                           binary.meth = "TSS",
+                                           filtered.meth = c("ROC",'TSS'),
+                                           total.consensus=TRUE,
+                                           compress = TRUE)
+        
 }
