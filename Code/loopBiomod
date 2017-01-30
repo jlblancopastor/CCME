@@ -21,12 +21,12 @@ species.list<-list.files(pattern="\\.shp$")
 gsub(".pdf",replacement="",list)
 for (s in species.list) {
   
-  shape.species<-readShapePoints(s,proj4string = CRS(geoproj)) #creates a shapefile of points for the ith species
+  shape.species<-readShapePoints(s,proj4string = CRS(geoproj)) #creates a shapefile of points for the sth species
   shape.mountain<-readShapePoly("mountains",proj4string = CRS(geoproj)) #reads the global mountain polygon shapefile
-  select.mountain<-over(shape.species,shape.mountain)  #overlays species ocurrences with  
+  select.mountain<-over(shape.species,shape.mountain)  #overlays species ocurrences with species distribution 
   select.mountain<-as.data.frame(droplevels(select.mountain$Name)) #erase non-used levels
   names.mountain<-levels(select.mountain[,1]) #selects the names of the mountain ranges
-  #### 2.1 #### PRESENT MODELING
+  #### 2.1 #### MODELING FOR PRESENT
   #Bioclimate variables are downloaded
   setwd().. #where the bioclimate variables for CHELSA are (only the selected).
   unzip(dir())
@@ -70,10 +70,10 @@ myRespXY <- species.na[,c("x","y")]
 models <- BIOMOD_Modeling(
   data,
   models = c('GBM','RF',"GLM","GAM","MARS","ANN"), #GAM is going to be trickier for species with a scarce number of points
-  #models.options = myBiomodOption, #chech the script which has been set aside in github
+  #models.options = myBiomodOption, #check the script which has been set aside in github
   NbRunEval=5,
-  DataSplit=80,
-  VarImport=5,
+  DataSplit=90,
+  VarImport=1,
   prevalence=0.5,
   models.eval.meth = c("ROC",'TSS'),
   SaveObj = TRUE,
@@ -117,13 +117,13 @@ ensemble.pres.mean.weight<-BIOMOD_EnsembleForecasting( models.ensemble.mean.weig
                                            filtered.meth = c("ROC",'TSS'),
                                            total.consensus=TRUE,
                                            compress = TRUE)
-prediction.present<-paste("ensemble.pres@proj@val$",s,"_EMwmeanByTSS_mergedAlgo_mergedRun_mergedData)
+prediction.present<-paste("ensemble.pres@proj@val$",s,"_EMwmeanByTSS_mergedAlgo_mergedRun_mergedData) #check if this works
 writeRaster(prediction.present,paste(s,".pres.asc",sep=""))
 
   #### 2.2 #### FUTURE MODELING
   models<-c("csiro","miroc")
   rcps<-c(26,60,85)
-  years<-c("30,50,80)
+  years<-c(30,50,80)
   for (m in models){
   for (rcps){
   for (y in years){
@@ -150,10 +150,11 @@ writeRaster(prediction.present,paste(s,".pres.asc",sep=""))
     unzip("tmax04.zip") #original download names of CHELSA variables should be replaced
     message(paste("masking tmax04 for",i,sep=" "),appendLF=T)
     tmax04<-mask(crop(raster("CHELSA_tmax_4_1979-2013_land.tif",crs=geoproj),selected.shape.mountain),selected.shape.mountain)
-    file.remove("CHELSA_tmax_3_1979-2013_land.tif")
-    
+    file.remove("CHELSA_tmax_4_1979-2013_land.tif")
+    #etc.
     setwd(paste("xx",m,r,y,sep="")) #XX to define the folder path
     unzip("anomalies.zip")
+    
     ### etc.
     biov<-biovars(tmax,tmin,prec)
     #now, we subset the ones to be used
