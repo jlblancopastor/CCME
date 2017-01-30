@@ -118,7 +118,7 @@ ensemble.pres.mean.weight<-BIOMOD_EnsembleForecasting( models.ensemble.mean.weig
                                            total.consensus=TRUE,
                                            compress = TRUE)
 prediction.present<-paste("ensemble.pres@proj@val$",s,"_EMwmeanByTSS_mergedAlgo_mergedRun_mergedData) #check if this works
-writeRaster(prediction.present,paste(s,".pres.asc",sep=""))
+writeRaster(prediction.present,paste(s,".pres.asc",sep="")) ###threshold techniques to define
 
   #### 2.2 #### FUTURE MODELING
   models<-c("csiro","miroc")
