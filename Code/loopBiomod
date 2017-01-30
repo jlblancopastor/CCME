@@ -30,8 +30,8 @@ for (s in species.list) {
   #Bioclimate variables are downloaded
   setwd().. #where the bioclimate variables for CHELSA are (only the selected).
   unzip(dir())
-  #crop each variable with select.mountain object
-  predictors<-stack() ### to stack the predictors.
+  # mask(crop(raster("CHELSA_tmax_3_1979-2013_land.tif",crs=geoproj),selected.shape.mountain),selected.shape.mountain) crop each variable with select.mountain object
+  predictors<-stack(....) ### to stack the predictors.
   
         #2.1.1 Calibration dataset
         
@@ -128,8 +128,7 @@ writeRaster(prediction.present,paste(s,".pres.asc",sep=""))
   for (rcps){
   for (y in years){
   #### 2.2 For each climate scenario, begin reading shapefiles and preparing stack of predictors
-  setwd(paste("xx",m,r,y,sep="")) #XX to define the folder path
-  variable.list<-c("prec","tmin","tmax")
+   variable.list<-c("prec","tmin","tmax")
   initial.months<-c("1","2","3","4","5","6","7","8","9","10","11","12")
   final.months<-c("01","02","03","04","05","06","07","08","09","10","11","12")
   selected.shape.mountain<-shape.mountain[shape.mountain$Name %in% names.mountain,] #subsets the polygons with species occurrences
@@ -152,7 +151,9 @@ writeRaster(prediction.present,paste(s,".pres.asc",sep=""))
     message(paste("masking tmax04 for",i,sep=" "),appendLF=T)
     tmax04<-mask(crop(raster("CHELSA_tmax_4_1979-2013_land.tif",crs=geoproj),selected.shape.mountain),selected.shape.mountain)
     file.remove("CHELSA_tmax_3_1979-2013_land.tif")
-      
+    
+    setwd(paste("xx",m,r,y,sep="")) #XX to define the folder path
+    unzip("anomalies.zip")
     ### etc.
     biov<-biovars(tmax,tmin,prec)
     #now, we subset the ones to be used
