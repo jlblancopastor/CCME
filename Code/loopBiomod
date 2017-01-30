@@ -107,10 +107,7 @@ models.ensemble.mean.weight<- BIOMOD_EnsembleModeling( models,
                                             committee.averaging = FALSE,
                                             prob.mean.weight = TRUE,
                                             prob.mean.weight.decay = 'proportional',
-                                            VarImport = 1)
-
-
- 
+                                             VarImport = 1)
 ensemble.pres.mean.weight<-BIOMOD_EnsembleForecasting( models.ensemble.mean.weight,
                                            projection.output = proj.models,
                                            selected.models = 'all',
@@ -118,8 +115,12 @@ ensemble.pres.mean.weight<-BIOMOD_EnsembleForecasting( models.ensemble.mean.weig
                                            filtered.meth = c("ROC",'TSS'),
                                            total.consensus=TRUE,
                                            compress = TRUE)
-  
-  unzip(dir())
+prediction.present<-paste("ensemble.pres@proj@val$",s,"_EMwmeanByTSS_mergedAlgo_mergedRun_mergedData)
+writeRaster(prediction.present,paste(s,".pres.asc",sep=""))
+
+  #### 2.2 #### FUTURE MODELING
+  models<-c("csiro","miroc")
+  rcps<-c(26,60,85)
   #### 2.2 For each climate scenario, begin reading shapefiles and preparing stack of predictors
   variable.list<-c("prec","tmin","tmax")
   initial.months<-c("1","2","3","4","5","6","7","8","9","10","11","12")
@@ -149,8 +150,8 @@ ensemble.pres.mean.weight<-BIOMOD_EnsembleForecasting( models.ensemble.mean.weig
     ### etc.
     biov<-biovars(tmax,tmin,prec)
     #now, we subset the ones to be used
-    }
+    } #close all the loop
     
-  #### 2.2 BIOMOD MODELLING #### MODEL CALIBRATION
+    
   
  
