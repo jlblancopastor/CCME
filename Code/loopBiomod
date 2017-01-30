@@ -76,7 +76,7 @@ models <- BIOMOD_Modeling(
   VarImport=1,
   prevalence=0.5,
   models.eval.meth = c("ROC",'TSS'),
-  SaveObj = TRUE,
+  SaveObj = FALSE,
   rescal.all.models = FALSE,
   do.full.models = FALSE,
   modeling.id = paste(myRespName,"FirstModeling",sep=""))
