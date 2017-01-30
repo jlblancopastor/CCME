@@ -29,6 +29,8 @@ for (s in species.list) {
   #### 2.1 #### PRESENT MODELING
   #Bioclimate variables are downloaded
   setwd().. #where the bioclimate variables for CHELSA are (only the selected).
+  unzip(dir())
+  #crop each variable with select.mountain object
   predictors<-stack() ### to stack the predictors.
   
         #2.1.1 Calibration dataset
