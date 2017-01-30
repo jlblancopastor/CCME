@@ -26,47 +26,22 @@ for (s in species.list) {
   select.mountain<-over(shape.species,shape.mountain)  #overlays species ocurrences with  
   select.mountain<-as.data.frame(droplevels(select.mountain$Name)) #erase non-used levels
   names.mountain<-levels(select.mountain[,1]) #selects the names of the mountain ranges
+  #### 2.1 #### PRESENT MODELING
+  #Bioclimate variables are downloaded
+  setwd().. #where the bioclimate variables for CHELSA are (only the selected).
+  predictors<-stack() ### to stack the predictors.
   
-  #### 2.1 Begin reading shapefiles and preparing stack of predictors
-  variable.list<-c("prec","tmin","tmax")
-  initial.months<-c("1","2","3","4","5","6","7","8","9","10","11","12")
-  final.months<-c("01","02","03","04","05","06","07","08","09","10","11","12")
-  selected.shape.mountain<-shape.mountain[shape.mountain$Name %in% names.mountain,] #subsets the polygons with species occurrences
-    unzip("tmax01.zip") #original download names of CHELSA variables should be replaced
-    message(paste("masking tmax01 for",i,sep=" "),appendLF=T)
-    tmax01<-mask(crop(raster("CHELSA_tmax_1_1979-2013_land.tif",crs=geoproj),selected.shape.mountain),selected.shape.mountain)
-    file.remove("CHELSA_tmax_1_1979-2013_land.tif")
-    
-    unzip("tmax02.zip") #original download names of CHELSA variables should be replaced
-    message(paste("masking tmax01 for",i,sep=" "),appendLF=T)
-    tmax02<-mask(crop(raster("CHELSA_tmax_2_1979-2013_land.tif",crs=geoproj),selected.shape.mountain),selected.shape.mountain)
-    file.remove("CHELSA_tmax_2_1979-2013_land.tif")
-    
-    unzip("tmax03.zip") #original download names of CHELSA variables should be replaced
-    message(paste("masking tmax03 for",i,sep=" "),appendLF=T)
-    tmax03<-mask(crop(raster("CHELSA_tmax_2_1979-2013_land.tif",crs=geoproj),selected.shape.mountain),selected.shape.mountain)
-    file.remove("CHELSA_tmax_3_1979-2013_land.tif")
-    ### etc.
-    biov<-biovars(tmax,tmin,prec)
-    #now, we subset the ones to be used
-    }
-    
-  #### 2.2 BIOMOD MODELLING #### MODEL CALIBRATION
-  
-       #2.2.1 Calibration dataset
+        #2.1.1 Calibration dataset
         
-species.coords<-coords(s)
-species<-s
-viola<-as.data.frame(presence.absence.raster(bio01,species.coords,raster.label=species),xy=TRUE) # check if bio01 is one of the biovars to use
-species.na<-species[,3]
-species.na[species.na==0]="NA"
-species.na<-cbind(species[,1:2],species.na)
-colnames(species.na)<-c("x","y",s)
-
-predictores<-stack() # to be determined what biovars are selected.
-
-# the name of studied species
-myRespName <- s
+        species.coords<-coords(s)
+        species<-s
+        species.map<-as.data.frame(presence.absence.raster(bio01,species.coords,raster.label=species),xy=TRUE) # check if bio01 is one of the biovars to use as mask
+        species.na<-species.map[,3]
+        species.na[species.na==0]="NA"
+        species.na<-cbind(species[,1:2],species.na)
+        colnames(species.na)<-c("x","y",s)
+        
+      myRespName <- s
 # the presence/absences data for our species
 myResp <- as.numeric(species.na[,myRespName])
 myResp[myResp == 2]  <- "NA"
@@ -75,28 +50,28 @@ myResp<-as.numeric(myResp)
 myRespXY <- species.na[,c("x","y")]
 
 
-data<-BIOMOD_FormatingData(resp.var=myResp,
+        data<-BIOMOD_FormatingData(resp.var=myResp,
                             expl.var=predictors,
                             resp.xy = myRespXY,
                             resp.name = myRespName,
                             eval.resp.var = NULL,
                             eval.expl.var = NULL,
                             eval.resp.xy = NULL,
-                            PA.nb.rep = 4,
+                            PA.nb.rep = 5,
                             PA.nb.absences = nrow(species.coords)*6, #this is the minimal number which is optimal for me
                             PA.strategy = 'random',
                             na.rm = TRUE)
-# rasters or any supported format by the raster package)
-rm() #remove the predictors used here
+        # rasters or any supported format by the raster package)
+        rm() #remove the predictors used here
 
 #### 5.2 MODELING ####
-modelss <- BIOMOD_Modeling(
-  datos,
+models <- BIOMOD_Modeling(
+  data,
   models = c('GBM','RF',"GLM","GAM","MARS","ANN"), #GAM is going to be trickier for species with a scarce number of points
   #models.options = myBiomodOption, #chech the script which has been set aside in github
   NbRunEval=5,
   DataSplit=80,
-  VarImport=1,
+  VarImport=5,
   prevalence=0.5,
   models.eval.meth = c("ROC",'TSS'),
   SaveObj = TRUE,
@@ -104,10 +79,10 @@ modelss <- BIOMOD_Modeling(
   do.full.models = FALSE,
   modeling.id = paste(myRespName,"FirstModeling",sep=""))
 
-rm(data)
+  rm(data)
 
-proj.modelos<-BIOMOD_Projection(modelos,
-              new.env=predictores,
+proj.models<-BIOMOD_Projection(models,
+              new.env=predictors,
               proj.name=s,
               xy.new.env = NULL,
               selected.models = 'all',
@@ -116,9 +91,9 @@ proj.modelos<-BIOMOD_Projection(modelos,
               compress = TRUE,
               build.clamping.mask = FALSE)
 
-rm(predictorss)
+rm(predictors)
 
-modelss.ensemble.mean.weight<- BIOMOD_EnsembleModeling( models,
+models.ensemble.mean.weight<- BIOMOD_EnsembleModeling( models,
                                             chosen.models = 'all',
                                             em.by = 'all',
                                             eval.metric = 'all',
@@ -136,12 +111,46 @@ modelss.ensemble.mean.weight<- BIOMOD_EnsembleModeling( models,
 
 
  
-ensemble.pres.mean.weight<-BIOMOD_EnsembleForecasting( modelos.ensemble.mean.weight,
-                                           projection.output = proj.modelos,
+ensemble.pres.mean.weight<-BIOMOD_EnsembleForecasting( models.ensemble.mean.weight,
+                                           projection.output = proj.models,
                                            selected.models = 'all',
                                            binary.meth = "TSS",
                                            filtered.meth = c("ROC",'TSS'),
                                            total.consensus=TRUE,
                                            compress = TRUE)
-        
-}
+  
+  unzip(dir())
+  #### 2.2 For each climate scenario, begin reading shapefiles and preparing stack of predictors
+  variable.list<-c("prec","tmin","tmax")
+  initial.months<-c("1","2","3","4","5","6","7","8","9","10","11","12")
+  final.months<-c("01","02","03","04","05","06","07","08","09","10","11","12")
+  selected.shape.mountain<-shape.mountain[shape.mountain$Name %in% names.mountain,] #subsets the polygons with species occurrences
+    unzip("tmax01.zip") #original download names of CHELSA variables should be replaced
+    message(paste("masking tmax01 for",i,sep=" "),appendLF=T)
+    tmax01<-mask(crop(raster("CHELSA_tmax_1_1979-2013_land.tif",crs=geoproj),selected.shape.mountain),selected.shape.mountain)
+    file.remove("CHELSA_tmax_1_1979-2013_land.tif")
+    
+    unzip("tmax02.zip") #original download names of CHELSA variables should be replaced
+    message(paste("masking tmax01 for",i,sep=" "),appendLF=T)
+    tmax02<-mask(crop(raster("CHELSA_tmax_2_1979-2013_land.tif",crs=geoproj),selected.shape.mountain),selected.shape.mountain)
+    file.remove("CHELSA_tmax_2_1979-2013_land.tif")
+    
+    unzip("tmax03.zip") #original download names of CHELSA variables should be replaced
+    message(paste("masking tmax03 for",i,sep=" "),appendLF=T)
+    tmax03<-mask(crop(raster("CHELSA_tmax_3_1979-2013_land.tif",crs=geoproj),selected.shape.mountain),selected.shape.mountain)
+    file.remove("CHELSA_tmax_3_1979-2013_land.tif")
+    
+    unzip("tmax04.zip") #original download names of CHELSA variables should be replaced
+    message(paste("masking tmax04 for",i,sep=" "),appendLF=T)
+    tmax04<-mask(crop(raster("CHELSA_tmax_4_1979-2013_land.tif",crs=geoproj),selected.shape.mountain),selected.shape.mountain)
+    file.remove("CHELSA_tmax_3_1979-2013_land.tif")
+    
+    
+    ### etc.
+    biov<-biovars(tmax,tmin,prec)
+    #now, we subset the ones to be used
+    }
+    
+  #### 2.2 BIOMOD MODELLING #### MODEL CALIBRATION
+  
+ 
