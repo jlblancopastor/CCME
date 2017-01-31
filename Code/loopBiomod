@@ -1,7 +1,7 @@
 #### BIOMOD LOOP FOR EVERY SPECIES IN THE DATASET ####
 #### 0. PREPARATORY PROCEDURES ####
 
-packages<-c("raster", "biomod2", "dismo","mgcv","rasterVis","RColorBrewer","rgdal","mgcv","shapefiles","rgeos","sp","maptools", "maps")
+packages<-c("raster", "biomod2", "dismo","mgcv","rasterVis","RColorBrewer","rgdal","mgcv","shapefiles","rgeos","sp","maptools", "maps", "ecospat")
 lapply(packages, require, character.only=T)
 geoproj<-"+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
 species.list<.list.files(pattern="\\.shp$") #a list containing the names of the species written exactly as in the qgis folder where all shapefiles are stored
@@ -27,15 +27,25 @@ for (s in species.list) {
   select.mountain<-as.data.frame(droplevels(select.mountain$Name)) #erase non-used levels
   names.mountain<-levels(select.mountain[,1]) #selects the names of the mountain ranges
   #### 2.1 #### MODELING FOR PRESENT
-  #Bioclimate variables are downloaded
-  setwd().. #where the bioclimate variables for CHELSA are (only the selected).
+  #Bioclimatic variables are downloaded
+  setwd().. #where the bioclimatic variables for CHELSA are (only the 13 that are selected).
   unzip(dir())
-  # mask(crop(raster("CHELSA_tmax_3_1979-2013_land.tif",crs=geoproj),selected.shape.mountain),selected.shape.mountain) crop each variable with select.mountain object
-  predictors<-stack(....) ### to stack the predictors.
-  
+  variable.list <- Sys.glob("*.tif$")
+    predictors <- stack()
+    for(i in 1:NROW(variable.list)){
+    tempraster <- raster(predictors[i])
+    predictors <- stack(predictors,tempraster)
+      }
+  predictors<-mask(crop(predictors),selected.shape.mountain),selected.shape.mountain)
+  species.coords<-coords(s)
+  test.presence<-extract(predictors,species.coords)
+  corvar <- cor(test.presence, method="pearson")
+  nvars<- ecospat.npred (corvar, th=0.75)
+  test.absence<-
+  test.absence<-extract(predictors,species.coords)
         #2.1.1 Calibration dataset
         
-        species.coords<-coords(s)
+       
         species<-s
         species.map<-as.data.frame(presence.absence.raster(bio01,species.coords,raster.label=species),xy=TRUE) # check if bio01 is one of the biovars to use as mask
         species.na<-species.map[,3]
