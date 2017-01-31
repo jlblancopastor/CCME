@@ -1,2 +1,35 @@
 #### SCRIPT FOR COMPUTING BIOVARIABLES ####
-
+years<-c(30,50,80)
+models<-c("csiro","miroc")
+rcps<-c(26,60,85)
+variables.list<-c("prec","tmax","tmin")
+months<-c(1:12)
+for (m in models{
+  for (r in rpcs{
+    for (y in years){
+    setwd(paste(XXX,m,r,y)) #folder
+    unzip("anomalies.zip")
+      for (i in variables.list){
+        for (m in months){
+          variable.present<-raster(paste("XXX",i,m,".tif")) ##XXX=path to CHELSA current climate
+          anomaly<-raster(paste(i,m,".asc"))
+          variable<-variable.present+anomaly
+          writeRaster(variable, paste(,i,m,".asc"))
+          }
+         }
+      tmax01<-raster("tmax1.asc")
+      tmax02<-raster("tmax2.asc")
+      tmax03<-raster("tmax3.asc")
+      tmax04<-raster("tmax4.asc")
+      tmax05<-raster("tmax5.asc")
+      tmax06<-raster("tmax6.asc")
+      tmax07<-raster("tmax7.asc")
+      tmax08<-raster("tmax8.asc")
+      tmax09<-raster("tmax9.asc")
+      tmax10<-raster("tmax10.asc")
+      tmax11<-raster("tmax11.asc")
+      tmax12<-raster("tmax12.asc")
+  }
+ }
+}
+    
