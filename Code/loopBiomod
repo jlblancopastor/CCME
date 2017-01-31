@@ -33,11 +33,10 @@ for (s in species.list) {
   variable.list <- Sys.glob("*.tif$")
     predictors <- stack()
     for(i in 1:NROW(variable.list)){
-    tempraster <- raster(predictors[i])
+    tempraster <- mask(crop(raster(predictors[i]),selected.shape.mountain),selected.shape.mountain)
     predictors <- stack(predictors,tempraster)
       }
-  predictors<-mask(crop(predictors),selected.shape.mountain),selected.shape.mountain)
-  species.coords<-coords(s)
+   species.coords<-coords(s)
   test.presence<-extract(predictors,species.coords)
   corvar <- cor(test.presence, method="pearson")
   nvars<- ecospat.npred (corvar, th=0.75)
@@ -168,9 +167,9 @@ writeRaster(prediction.present,paste(s,".pres.asc",sep="")) ###threshold techniq
     ### etc.
     biov<-biovars(tmax,tmin,prec)
     #now, we subset the ones to be used
-    }
-    }
-    }
+    }#close temporal horizon loop
+    }# close rcps loop
+    }#close general circulation models loop
     } #close all the loop
     
     
