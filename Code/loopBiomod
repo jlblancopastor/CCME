@@ -27,7 +27,7 @@ for (s in species.list) {
   select.mountain<-as.data.frame(droplevels(select.mountain$Name)) #erase non-used levels
   names.mountain<-levels(select.mountain[,1]) #selects the names of the mountain ranges
   #### 2.1 #### MODELING FOR PRESENT
-  #Bioclimatic variables are downloaded
+  #Bioclimatic variables are already downloaded and ready
   setwd().. #where the bioclimatic variables for CHELSA are (only the 13-15 that are selected).
   unzip(dir())
   variable.list <- Sys.glob("*.tif$")
@@ -40,12 +40,13 @@ for (s in species.list) {
   test.presence<-extract(predictors,species.coords)
   corvar <- cor(test.presence, method="pearson")
   nvars<- ecospat.npred (corvar, th=0.75)
-  test.absence<-
+  test.absence<-predictors$bio01
   test.absence<-extract(predictors,species.coords)
         #2.1.1 Calibration dataset
-       
+        mask<-
         species<-s
-        species.map<-as.data.frame(presence.absence.raster(bio01,species.coords,raster.label=species),xy=TRUE) # check if bio01 is one of the biovars to use as mask
+        species.map<-as.data.frame(presence.absence.raster(mask,species.coords,raster.label=species),xy=TRUE)
+        rm(mask)
         species.na<-species.map[,3]
         species.na[species.na==0]="NA"
         species.na<-cbind(species[,1:2],species.na)
@@ -68,7 +69,7 @@ myRespXY <- species.na[,c("x","y")]
                             eval.expl.var = NULL,
                             eval.resp.xy = NULL,
                             PA.nb.rep = 5,
-                            PA.nb.absences = nrow(species.coords)*6, #this is the minimal number which is optimal for me
+                            PA.nb.absences = nrow(species.coords)*6, #this is the number which is optimal for me
                             PA.strategy = 'random',
                             na.rm = TRUE)
         # rasters or any supported format by the raster package)
@@ -125,7 +126,7 @@ ensemble.pres.mean.weight<-BIOMOD_EnsembleForecasting( models.ensemble.mean.weig
                                            filtered.meth = c("ROC",'TSS'),
                                            total.consensus=TRUE,
                                            compress = TRUE)
-prediction.present<-paste(""ensemble.pres.mean.weight@proj@val$",s,"_EMwmeanByTSS_mergedAlgo_mergedRun_mergedData) #check if this works
+prediction.present<-paste(""ensemble.pres.mean.weight@proj@val$",s,"_EMwmeanByTSS_mergedAlgo_mergedRun_mergedData) #this does not extract a binary prediction
 writeRaster(prediction.present,paste(s,".pres.asc",sep="")) ###threshold techniques to define
 
   #### 2.2 #### FUTURE MODELING
@@ -164,7 +165,7 @@ writeRaster(prediction.present,paste(s,".pres.asc",sep="")) ###threshold techniq
                                            filtered.meth = c("ROC",'TSS'),
                                            total.consensus=TRUE,
                                            compress = TRUE)
-      prediction.present<-paste("ensemble.mean.weight@proj@val$",s,"_EMwmeanByTSS_mergedAlgo_mergedRun_mergedData") #check if this works
+      prediction.present<-paste("ensemble.mean.weight@proj@val$",s,"_EMwmeanByTSS_mergedAlgo_mergedRun_mergedData") #this does not extract a binary prediction
       writeRaster(prediction.present,paste(s,m,r,y,".pres.asc",sep=""))
     }#close temporal horizon loop
     }# close rcps loop
