@@ -7,12 +7,12 @@ geoproj<-"+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
 species.list<.list.files(pattern="\\.shp$") #a list containing the names of the species written exactly as in the qgis folder where all shapefiles are stored
 
 presence.absence.raster <- function (mask.raster,species.data,raster.label="") {
-mask.raster[!is.na(mask.raster)] <- 0
-speciesRaster <- rasterize(species.data,mask.raster,field=1)
-speciesRaster <- merge(speciesRaster,mask.raster)
-names(speciesRaster) <- raster.label
-return(speciesRaster)
-}
+  mask.raster[!is.na(mask.raster)] <- 0
+  speciesRaster <- rasterize(species.data,mask.raster,field=1)
+  speciesRaster <- merge(speciesRaster,mask.raster)
+  names(speciesRaster) <- raster.label
+  return(speciesRaster)
+  }
 #### 1. BIOMOD PARAMETERS ####
 #this is set up, for now, in a separate branch
 #### 2. LOOP ###
@@ -38,10 +38,14 @@ for (s in species.list) {
       }
    species.coords<-coords(s)
   test.presence<-extract(predictors,species.coords)
+  
   corvar <- cor(test.presence, method="pearson")
   nvars<- ecospat.npred (corvar, th=0.75)
   test.absence<-sampleRandom(tempraster, nrow(species.coords), na.rm=TRUE, ext=tempraster,cells=FALSE, rowcol=FALSE, xy=TRUE, sp=FALSE, asRaster=FALSE)
+  test.absence$pres<-c(rep(0,nrow(test.absence))
+  test.presence$pres<-c(rep(0,nrow(test.absence))
   test<-rbind(test.presence,test.absence)
+  hier<-hier.part(test)
   #2.1.1 Calibration dataset
         mask<-
         species<-s
