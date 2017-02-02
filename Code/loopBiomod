@@ -45,7 +45,9 @@ for (s in species.list) {
   test.absence$pres<-c(rep(0,nrow(test.absence))
   test.presence$pres<-c(rep(0,nrow(test.absence))
   test<-rbind(test.presence,test.absence)
-  hier<-hier.part(test)
+  test.response<-test[,1]
+  test.predictor<-test[,2:ncol(test)]
+  hier<-hier.part(test.response,test.predictor,family = "gaussian", gof = "RMSPE",barplot = FALSE))
   #2.1.1 Calibration dataset
         mask<-
         species<-s
