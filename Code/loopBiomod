@@ -167,7 +167,7 @@ writeRaster(prediction.present,paste(s,".pres.asc",sep="")) ###threshold techniq
                                             committee.averaging = FALSE,
                                             prob.mean.weight = TRUE,
                                             prob.mean.weight.decay = 'proportional',
-                                             VarImport = 1)
+                                             VarImport = 0)
       ensemble.mean.weight<-BIOMOD_EnsembleForecasting( models.ensemble.mean.weight,
                                            projection.output = proj.models,
                                            selected.models = 'all',
