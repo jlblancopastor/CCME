@@ -48,6 +48,9 @@ for (s in species.list) {
   test.response<-test[,1]
   test.predictor<-test[,2:ncol(test)]
   hier<-hier.part(test.response,test.predictor,family = "gaussian", gof = "RMSPE",barplot = FALSE))
+  hier<-as.data.frame(hier$IJ)
+  hier <- hier[order(-hier$Total),] 
+  hier<-hier[1:nvars,]
   #2.1.1 Calibration dataset
         mask<-
         species<-s
