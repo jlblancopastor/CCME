@@ -40,9 +40,9 @@ for (s in species.list) {
   test.presence<-extract(predictors,species.coords)
   corvar <- cor(test.presence, method="pearson")
   nvars<- ecospat.npred (corvar, th=0.75)
-  test.absence<-predictors$bio01
-  test.absence<-extract(predictors,species.coords)
-        #2.1.1 Calibration dataset
+  test.absence<-sampleRandom(tempraster, nrow(species.coords), na.rm=TRUE, ext=tempraster,cells=FALSE, rowcol=FALSE, xy=TRUE, sp=FALSE, asRaster=FALSE)
+  test<-rbind(test.presence,test.absence)
+  #2.1.1 Calibration dataset
         mask<-
         species<-s
         species.map<-as.data.frame(presence.absence.raster(mask,species.coords,raster.label=species),xy=TRUE)
