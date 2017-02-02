@@ -51,6 +51,7 @@ for (s in species.list) {
   hier<-as.data.frame(hier$IJ)
   hier <- hier[order(-hier$Total),] 
   hier<-hier[1:nvars,]
+  predictors<-stack(rownames(hier))
   #2.1.1 Calibration dataset
         mask<-
         species<-s
