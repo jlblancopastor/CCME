@@ -82,9 +82,7 @@ myRespXY <- species.na[,c("x","y")]
                             PA.nb.absences = nrow(species.coords)*6, #this is the number which is optimal for me
                             PA.strategy = 'random',
                             na.rm = TRUE)
-        # rasters or any supported format by the raster package)
-        rm() #remove the predictors used here
-
+       
 #### 5.2 MODELING ####
 models <- BIOMOD_Modeling(
   data,
