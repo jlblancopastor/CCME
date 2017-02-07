@@ -19,7 +19,7 @@ for (m in models{
           writeRaster(variable, paste(,i,m,".asc"))
           }
          }
-      tmax01<-raster("tmax1.asc")
+      tmax01<-raster("tmax1.asc")#check the coding
       tmax02<-raster("tmax2.asc")
       tmax03<-raster("tmax3.asc")
       tmax04<-raster("tmax4.asc")
