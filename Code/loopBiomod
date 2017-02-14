@@ -14,7 +14,7 @@ presence.absence.raster <- function (mask.raster,species.data,raster.label="") {
   return(speciesRaster)
   }
 #### 1. BIOMOD PARAMETERS ####
-#this is set up, for now, in a separate branch
+#this is written, for now, in a separate branch.
 #### 2. LOOP ###
 setwd("") # where the shapefiles are. Currently for this is in "F:/Climatechange/Qgis"
 species.list<-list.files(pattern="\\.shp$")
@@ -47,7 +47,7 @@ for (s in species.list) {
   test<-rbind(test.presence,test.absence)
   test.response<-test[,1]
   test.predictor<-test[,2:ncol(test)]
-  hier<-hier.part(test.response,test.predictor,family = "gaussian", gof = "RMSPE",barplot = FALSE))
+  hier<-hier.part(test.response,test.predictor,family = "gaussian", gof = "RMSPE",barplot = FALSE)) #we should cap here in 13 variables.
   hier<-as.data.frame(hier$IJ)
   hier <- hier[order(-hier$Total),] 
   hier<-hier[1:nvars,]
