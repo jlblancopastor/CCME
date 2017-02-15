@@ -64,7 +64,7 @@ for (m in models{
       writeRaster(biovariables$bio2,"bio02.asc",overwrite=TRUE)
       writeRaster(biovariables$bio3,"bio03.asc",overwrite=TRUE)
       writeRaster(biovariables$bio4,"bio04.asc",overwrite=TRUE)
-      writeRaster(biovariables$bio5,"bio05.asc",overwrite=TRUE)
+      #writeRaster(biovariables$bio5,"bio05.asc",overwrite=TRUE)
       writeRaster(biovariables$bio6,"bio06.asc",overwrite=TRUE)
       writeRaster(biovariables$bio7,"bio07.asc",overwrite=TRUE)
       writeRaster(biovariables$bio8,"bio08.asc",overwrite=TRUE)
