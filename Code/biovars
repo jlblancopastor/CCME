@@ -15,6 +15,7 @@ for (m in models{
         for (m in months){
           variable.present<-raster(paste("XXX",i,".tif",sep="")) ##XXX=path to CHELSA current climate. Ensure CHELSA climate are coded as prec1.tif, tmax2.tif and so
           anomaly<-raster(paste("anomaly.",i.,y,".asc"))
+          anomaly<-resample(anomaly, variable)
           variable<-variable.present+anomaly
           writeRaster(variable, paste(,i,m,".asc"))
           }
