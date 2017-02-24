@@ -9,7 +9,7 @@ months<-c(1:12)
 for (m in models{
   for (r in rpcs{
     for (y in years){
-    setwd(paste(XXX,m,r,y)) #folder for the model-rcp-year scenario combination (that is the hierarchical structure). define the path XXX
+    setwd(paste(XXX,m,r,y,sep="")) #folder for the model-rcp-year scenario combination (that is the hierarchical structure). define the path XXX
     unzip("anomalies.zip")
       for (i in variables.list){
         for (m in months){
