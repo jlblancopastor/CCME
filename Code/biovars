@@ -6,19 +6,21 @@ models<-c("csiro","miroc")
 rcps<-c(26,60,85)
 variables.list<-c("prec","tmax","tmin")
 months<-c(1:12)
+month.variables<-c("01","02","03","04","05","06","07","08","09","10","11","12")
 for (m in models{
   for (r in rpcs{
     for (y in years){
-    setwd(paste(XXX,m,r,y,sep="")) #folder for the model-rcp-year scenario combination (that is the hierarchical structure). define the path XXX
+    setwd(paste("/home/jose/climate/",m,"/",r,"/",y,sep="")) #folder for the model-rcp-year scenario combination (that is the hierarchical structure). define the path XXX
     unzip(paste("anomalies","_",m,"_",r,"_",y,".zip",sep="")
       for (i in variables.list){
+      unzip(paste("/home/jose/climate/CHELSA_",i,"_1979-2013_V1_1.zip",sep=""))
         for (m in months){
-          unzip(paste("/home/jose/climate/CHELSA_",i,"_1979-2013_V1_1.zip",sep=""))
           variable.present<-raster(paste("/home/jose/climate/CHELSA_",i,"_1979-2013_V1_1.tif",sep=""))
-          anomaly<-raster(paste("anomaly.",i,".",m,".asc",sep=""))
-          anomaly<-resample(anomaly, variable)
+          anomaly<-raster(paste("anom.",i,month.variables[m],".asc",sep=""))
+          anomaly<-resample(anomaly, variable.present)
           variable<-variable.present+anomaly
-          writeRaster(variable, paste(,i,m,".asc"))
+          writeRaster(variable, paste(i,m,".asc",sep=""))
+          file.remove(paste("anom.",i,month.variables[m],".asc",sep=""))
           }
          }
       tmax01<-raster("tmax1.asc")#check the coding
