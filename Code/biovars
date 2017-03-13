@@ -13,7 +13,8 @@ for (m in models{
     unzip(paste("anomalies","_",m,"_",r,"_",y,".zip",sep="")
       for (i in variables.list){
         for (m in months){
-          variable.present<-raster(paste("XXX",i,".tif",sep="")) ##XXX=path to CHELSA current climate. Ensure CHELSA climate are coded as prec1.tif, tmax2.tif and so
+          unzip(paste("/home/jose/climate/CHELSA_",i,"_1979-2013_V1_1.zip",sep=""))
+          variable.present<-raster(paste("/home/jose/climate/CHELSA_",i,"_1979-2013_V1_1.tif",sep=""))
           anomaly<-raster(paste("anomaly.",i,".",m,".asc",sep=""))
           anomaly<-resample(anomaly, variable)
           variable<-variable.present+anomaly
