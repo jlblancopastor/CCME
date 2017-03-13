@@ -10,11 +10,11 @@ for (m in models{
   for (r in rpcs{
     for (y in years){
     setwd(paste(XXX,m,r,y,sep="")) #folder for the model-rcp-year scenario combination (that is the hierarchical structure). define the path XXX
-    unzip("anomalies.zip")
+    unzip(paste("anomalies","_",m,"_",r,"_",y,".zip",sep="")
       for (i in variables.list){
         for (m in months){
           variable.present<-raster(paste("XXX",i,".tif",sep="")) ##XXX=path to CHELSA current climate. Ensure CHELSA climate are coded as prec1.tif, tmax2.tif and so
-          anomaly<-raster(paste("anomaly.",i.,y,".asc"))
+          anomaly<-raster(paste("anomaly.",i,".",m,".asc",sep=""))
           anomaly<-resample(anomaly, variable)
           variable<-variable.present+anomaly
           writeRaster(variable, paste(,i,m,".asc"))
