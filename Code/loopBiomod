@@ -22,7 +22,7 @@ gsub(".pdf",replacement="",list)
 for (s in species.list) {
   
   shape.species<-readShapePoints(s,proj4string = CRS(geoproj)) #creates a shapefile of points for the sth species
-  shape.mountain<-readShapePoly("mountains",proj4string = CRS(geoproj)) #reads the global mountain polygon shapefile #IMPORTANT:COMBINE BOTH ENTIRE WORLD AND LARGE SCALE SETS (CREATE A NEW POLYGON SHAPEFILE BY THE COMBINATION OF THE TWO FILES)
+  shape.mountain<-readShapePoly("mountains",proj4string = CRS(geoproj)) #reads the global mountain polygon shapefile #IMPORTANT:use BOTH ENTIRE WORLD AND LARGE SCALE SETS
   select.mountain<-over(shape.species,shape.mountain)  #overlays species ocurrences with species distribution 
   select.mountain<-as.data.frame(droplevels(select.mountain$Name)) #erase non-used levels
   names.mountain<-levels(select.mountain[,1]) #selects the names of the mountain ranges
