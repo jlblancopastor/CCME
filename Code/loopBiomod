@@ -5,7 +5,7 @@ packages<-c("raster", "biomod2", "dismo","mgcv","rasterVis","RColorBrewer","rgda
 lapply(packages, require, character.only=T)
 geoproj<-"+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
 species.list<.list.files(pattern="\\.shp$") #a list containing the names of the species written exactly as in the qgis folder where all shapefiles are stored
-
+boundaries<-data.frame(species = character(0), boundaries = character(0))
 presence.absence.raster <- function (mask.raster,species.data,raster.label="") {
   mask.raster[!is.na(mask.raster)] <- 0
   speciesRaster <- rasterize(species.data,mask.raster,field=1)
