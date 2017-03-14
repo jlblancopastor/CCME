@@ -26,6 +26,20 @@ for (s in species.list) {
   select.mountain<-over(shape.species,shape.mountain)  #overlays species ocurrences with species distribution 
   select.mountain<-as.data.frame(droplevels(select.mountain$Name)) #erase non-used levels
   names.mountain<-levels(select.mountain[,1]) #selects the names of the mountain ranges
+  
+  ## Analyze if mountain shapefile needs to have a buffer to include all occurrences
+  if (nrow(shape.species) != nrow(shape.species[(shape.mountain[shape.mountain$Name %in% names.mountain,]),])) {
+    all.occ.in.mountain <- FALSE        # Creates object all.occ.in.mountain to know if all occurrences are inside the mountain polygons
+  } else {all.occ.in.mountain <- TRUE}
+  # Create a custom polygon layer of mountains (+ buffer) for the species
+  my.mountain <- shape.mountain[shape.mountain$Name %in% names.mountain,]
+  # Create buffer if occurrences fall outside mountain polygons
+  if (all.occ.in.mountain == FALSE){       # If some occ are outside, create a buffer, with the minimum size to include all occ at steps of 0.2º
+    while(nrow(shape.species[my.mountain,]) != nrow(shape.species)){
+      my.mountain <- gBuffer(my.mountain, byid=T, width=0.2)
+    }
+  }       ######## NOTE THAT THE REST OF THE SCRIPT SHOULD MAKE USE OF THE "my.mountain" POLYGON LAYER...
+  
   #### 2.1 #### MODELING FOR PRESENT
   #Bioclimatic variables are already downloaded and ready
   setwd().. #folder for CHELSA biovariables
