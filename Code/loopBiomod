@@ -147,7 +147,7 @@ writeRaster(prediction.present,paste(s,".pres.asc",sep="")) ###threshold techniq
   #### 2.2 For each climate scenario, begin reading shapefiles and preparing stack of predictors
     setwd(paste(XXXX,m,r,y)) #go to the folder were bioclimatic variables for the future are
     predictors <- stack()
-      for(i in 1:NROW(variable.list)){
+      for(i in 1:nrow(variable.list)){
       tempraster <- mask(crop(raster(predictors[i]),selected.shape.mountain),selected.shape.mountain)
       predictors <- stack(predictors,tempraster)
       }
