@@ -16,7 +16,7 @@ presence.absence.raster <- function (mask.raster,species.data,raster.label="") {
 #### 1. BIOMOD PARAMETERS ####
 #this is written, for now, in a separate branch.
 #### 2. LOOP ###
-setwd("") # where the shapefiles are. Currently for this is in "F:/Climatechange/Qgis"
+setwd("~/Climatechange/Qgis") # where the shapefiles are.
 species.list<-list.files(pattern="\\.shp$")
 gsub(".pdf",replacement="",list)
 for (s in species.list) {
