@@ -55,6 +55,7 @@ for (s in species.list) { #first loop is open
     for(i in 1:nrow(variable.list)){
     tempraster <- mask(crop(raster(predictors[i]),my.mountain),my.mountain)
     predictors <- stack(predictors,tempraster)
+    file.remove(paste(toString(predictors[i]),".asc",sep=""))
       }
    species.coords<-coords(s)
   test.presence<-extract(predictors,species.coords)
@@ -73,7 +74,7 @@ for (s in species.list) { #first loop is open
   hier<-hier[1:nvars,]
   predictors<-stack(rownames(hier))
   #2.1.1 Calibration dataset
-        mask<-
+        mask<-#?
         species<-s
         species.map<-as.data.frame(presence.absence.raster(mask,species.coords,raster.label=species),xy=TRUE)
         rm(mask)
