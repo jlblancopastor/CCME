@@ -19,7 +19,7 @@ presence.absence.raster <- function (mask.raster,species.data,raster.label="") {
 setwd("~/Climatechange/Qgis") # where the shapefiles are.
 species.list<-list.files(pattern="\\.shp$")
 gsub(".pdf",replacement="",list)
-for (s in species.list) {
+for (s in species.list) { #first loop is open
   
   shape.species<-readShapePoints(s,proj4string = CRS(geoproj)) #creates a shapefile of points for the sth species
   shape.mountain<-readShapePoly("mountains",proj4string = CRS(geoproj)) #reads the global mountain polygon shapefile #IMPORTANT:use BOTH ENTIRE WORLD AND LARGE SCALE SETS
@@ -192,7 +192,7 @@ writeRaster(prediction.present,paste(s,".pres.asc",sep="")) ###threshold techniq
     }#close temporal horizon loop
     }# close rcps loop
     }#close general circulation models loop
-    } #close all the loop
+    } #close all the loop. This one closes for (s in species list)
     
     
   
