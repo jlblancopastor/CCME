@@ -35,13 +35,17 @@ for (s in species.list) { #first loop is open
     }
   # Create a custom polygon layer of mountains (+ buffer) for the species
   my.mountain <- shape.mountain[shape.mountain$Name %in% names.mountain,]
+  boundary<-"Mountains"
   # Create buffer if occurrences fall outside mountain polygons
   if (all.occ.in.mountain == FALSE){       # If some occ are outside, create a buffer, with the minimum size to include all occ at steps of 0.2º
     while(nrow(shape.species[my.mountain,]) != nrow(shape.species)){
       my.mountain <- gBuffer(my.mountain, byid=T, width=0.2)
+      boundary<-"Mountains.buffered"
     }
   }       ######## NOTE THAT THE REST OF THE SCRIPT SHOULD MAKE USE OF THE "my.mountain" POLYGON LAYER...
-  
+  bound<-as.data.frame(t(as.data.frame(s,boundary)))
+  boundaries<-rbind(boundaries,bound)
+  colnames(boundaries)<-c("Species","Boundaries")
   #### 2.1 #### MODELING FOR PRESENT
   #Bioclimatic variables are already downloaded and ready
   setwd(~/climatechange/biovars).. #folder for CHELSA biovariables for present
