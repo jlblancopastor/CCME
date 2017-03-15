@@ -30,7 +30,9 @@ for (s in species.list) { #first loop is open
   ## Analyze if mountain shapefile needs to have a buffer to include all occurrences
   if (nrow(shape.species) != nrow(shape.species[(shape.mountain[shape.mountain$Name %in% names.mountain,]),])) {
     all.occ.in.mountain <- FALSE        # Creates object all.occ.in.mountain to know if all occurrences are inside the mountain polygons
-  } else {all.occ.in.mountain <- TRUE}
+  } else {
+    all.occ.in.mountain <- TRUE
+    }
   # Create a custom polygon layer of mountains (+ buffer) for the species
   my.mountain <- shape.mountain[shape.mountain$Name %in% names.mountain,]
   # Create buffer if occurrences fall outside mountain polygons
@@ -42,12 +44,12 @@ for (s in species.list) { #first loop is open
   
   #### 2.1 #### MODELING FOR PRESENT
   #Bioclimatic variables are already downloaded and ready
-  setwd().. #folder for CHELSA biovariables
-  unzip(dir())
+  setwd(~/climatechange/biovars).. #folder for CHELSA biovariables for present
+   unzip(dir())
   variable.list <- Sys.glob("*.asc$") #ensure that is this is the format
     predictors <- stack()
     for(i in 1:nrow(variable.list)){
-    tempraster <- mask(crop(raster(predictors[i]),selected.shape.mountain),selected.shape.mountain)
+    tempraster <- mask(crop(raster(predictors[i]),my.mountain),my.mountain)
     predictors <- stack(predictors,tempraster)
       }
    species.coords<-coords(s)
