@@ -119,7 +119,11 @@ models <- BIOMOD_Modeling(
   rescal.all.models = FALSE,
   do.full.models = FALSE,
   modeling.id = paste(myRespName,"FirstModeling",sep=""))
-
+  
+  evals<-get_evaluations(models,as.data.frame=TRUE)
+  write.table(evals,paste(s,"_evals.txt",sep="\t"))
+ #getvariablesimportance
+  
   rm(data)
 
 proj.models<-BIOMOD_Projection(models,
