@@ -122,7 +122,8 @@ models <- BIOMOD_Modeling(
   
   evals<-get_evaluations(models,as.data.frame=TRUE)
   write.table(evals,paste(s,"_evals.txt",sep="\t"))
- #getvariablesimportance
+  importance<-get_variables_importance(models,as.data.frame=TRUE)
+  write.table(importance,paste(s,"_variables.importance.txt",sep="\t"))
   
   rm(data)
 
