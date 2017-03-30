@@ -15,7 +15,7 @@ for (m in models{
       for (i in variables.list){
       unzip(paste("/home/jose/climate/CHELSA_",i,"_1979-2013_V1_1.zip",sep=""))
         for (m in months){
-          variable.present<-raster(paste("/home/jose/climate/CHELSA_",i,"_1979-2013_V1_1.tif",sep=""))
+          variable.present<-raster(paste("/home/jose/climate/CHELSA_",i,m,"_1979-2013_V1_1.tif",sep=""))
           anomaly<-raster(paste("anom.",i,month.variables[m],".asc",sep=""))
           anomaly<-resample(anomaly, variable.present)
           variable<-variable.present+anomaly
