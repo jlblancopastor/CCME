@@ -1,6 +1,6 @@
 #### BIOMOD LOOP FOR EVERY SPECIES IN THE DATASET ####
 #### 0. PREPARATORY PROCEDURES ####
-
+install.packages("raster", "biomod2", "dismo","mgcv","rasterVis","RColorBrewer","rgdal","mgcv","shapefiles","rgeos","sp","maptools", "maps", "ecospat")
 packages<-c("raster", "biomod2", "dismo","mgcv","rasterVis","RColorBrewer","rgdal","mgcv","shapefiles","rgeos","sp","maptools", "maps", "ecospat")
 lapply(packages, require, character.only=T)
 geoproj<-"+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
