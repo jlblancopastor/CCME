@@ -10,12 +10,12 @@ month.variables<-c("01","02","03","04","05","06","07","08","09","10","11","12")
 for (m in models{
   for (r in rpcs{
     for (y in years){
-    setwd(paste("/home/jose/climate/",m,"/",r,"/",y,sep="")) #folder for the model-rcp-year scenario combination (that is the hierarchical structure). define the path XXX
+    setwd(paste("/nobackup/data7/jose/CCME/climate/",m,"/",r,"/",y,sep="")) #folder for the model-rcp-year scenario combination (that is the hierarchical structure). define the path XXX
     unzip(paste("anomalies","_",m,"_",r,"_",y,".zip",sep="")
       for (i in variables.list){
-      unzip(paste("/home/jose/climate/CHELSA_",i,"_1979-2013_V1_1.zip",sep=""))
-        for (m in months){
-          variable.present<-raster(paste("/home/jose/climate/CHELSA_",i,m,"_1979-2013_V1_1.tif",sep=""))
+      for (m in months){
+          unzip(paste("/nobackup/data7/jose/CCME/climate/CHELSA_",i,"_",m,"_1979-2013_V1_1.zip",sep=""),overwrite=TRUE)
+          variable.present<-raster(paste("/nobackup/data7/jose/CCME/climate/CHELSA_",i,m,"_1979-2013_V1_1.tif",sep=""))
           anomaly<-raster(paste("anom.",i,month.variables[m],".asc",sep=""))
           anomaly<-resample(anomaly, variable.present)
           variable<-variable.present+anomaly
