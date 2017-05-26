@@ -1,8 +1,9 @@
 #### BIOMOD LOOP FOR EVERY SPECIES IN THE DATASET ####
 #### 0. PREPARATORY PROCEDURES ####
-install.packages("raster", "biomod2", "dismo","mgcv","rasterVis","RColorBrewer","rgdal","mgcv","shapefiles","rgeos","sp","maptools", "maps", "ecospat")
-packages<-c("raster", "biomod2", "dismo","mgcv","rasterVis","RColorBrewer","rgdal","mgcv","shapefiles","rgeos","sp","maptools", "maps", "ecospat")
+#install.packages("raster", "biomod2", "dismo","mgcv","rasterVis","RColorBrewer","rgdal","mgcv","shapefiles","rgeos","sp","maptools", "maps", "ecospat")
+packages<-c("raster", "biomod2", "dismo")
 lapply(packages, require, character.only=T)
+source("biov.R")
 geoproj<-"+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
 species.list<.list.files(pattern="\\.shp$") #a list containing the names of the species written exactly as in the qgis folder where all shapefiles are stored
 boundaries<-data.frame(species = character(0), boundaries = character(0))
@@ -173,11 +174,24 @@ writeRaster(prediction.present,paste(s,".pres.asc",sep="")) ###threshold techniq
   for (y in years){
   #### 2.2 For each climate scenario, begin reading shapefiles and preparing stack of predictors
     setwd(paste(XXXX,m,r,y)) #go to the folder were bioclimatic variables for the future are
-    predictors <- stack()
-      for(i in 1:nrow(variable.list)){
-      tempraster <- mask(crop(raster(predictors[i]),selected.shape.mountain),selected.shape.mountain)
+         
+      biov<-biov()#this function reads and crops the raw monthly variables and computes and returns biovariables
+      selected.predictors<-rownames(hier)
+      predictors<-stack()   
+      for (sel in selected.predictors){
+      tempraster<-biov[sel]
       predictors <- stack(predictors,tempraster)
       }
+      proj.models<-BIOMOD_Projection(models,
+              new.env=predictors,
+              proj.name=s,
+              xy.new.env = NULL,
+              selected.models = 'all',
+              binary.meth = "TSS",
+              filtered.meth = "TSS","ROC",
+              compress = TRUE,
+              build.clamping.mask = FALSE)
+              
       models.ensemble.mean.weight<- BIOMOD_EnsembleModeling( models,
                                             chosen.models = 'all',
                                             em.by = 'all',
