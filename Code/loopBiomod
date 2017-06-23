@@ -1,0 +1,360 @@
+#### BIOMOD LOOP FOR EVERY SPECIES IN THE DATASET ####
+#### 0. PREPARATORY PROCEDURES ####
+#install.packages("raster", "biomod2", "dismo","mgcv","rasterVis","RColorBrewer","rgdal","mgcv","shapefiles","rgeos","sp","maptools", "maps", "ecospat")
+packages<-c("raster", "biomod2", "dismo")
+lapply(packages, require, character.only=T)
+source("biov.R")
+geoproj<-"+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
+species.list<.list.files(pattern="\\.shp$") #a list containing the names of the species written exactly as in the qgis folder where all shapefiles are stored
+boundaries<-data.frame(species = character(0), boundaries = character(0))
+#some other tables might be wanted to be here
+presence.absence.raster <- function (mask.raster,species.data,raster.label="") {
+  mask.raster[!is.na(mask.raster)] <- 0
+  speciesRaster <- rasterize(species.data,mask.raster,field=1)
+  speciesRaster <- merge(speciesRaster,mask.raster)
+  names(speciesRaster) <- raster.label
+  return(speciesRaster)
+  }
+#### 1. BIOMOD PARAMETERS ####
+#this is written, for now, in a separate branch.
+#### 2. LOOP ###
+setwd("~/Climatechange/Qgis") # where the shapefiles are.
+species.list<-list.files(pattern="\\.shp$")
+gsub(".pdf",replacement="",list)
+for (s in species.list) { #first loop is open
+  
+  shape.species<-readShapePoints(s,proj4string = CRS(geoproj)) #creates a shapefile of points for the sth species
+  shape.mountain<-readShapePoly("mountains",proj4string = CRS(geoproj)) #reads the global mountain polygon shapefile #IMPORTANT:use BOTH ENTIRE WORLD AND LARGE SCALE SETS
+  select.mountain<-over(shape.species,shape.mountain)  #overlays species ocurrences with species distribution 
+  select.mountain<-as.data.frame(droplevels(select.mountain$Name)) #erase non-used levels
+  names.mountain<-levels(select.mountain[,1]) #selects the names of the mountain ranges
+  
+  ## Analyze if mountain shapefile needs to have a buffer to include all occurrences
+  if (nrow(shape.species) != nrow(shape.species[(shape.mountain[shape.mountain$Name %in% names.mountain,]),])) {
+    all.occ.in.mountain <- FALSE        # Creates object all.occ.in.mountain to know if all occurrences are inside the mountain polygons
+  } else {
+    all.occ.in.mountain <- TRUE
+    }
+  # Create a custom polygon layer of mountains (+ buffer) for the species
+  my.mountain <- shape.mountain[shape.mountain$Name %in% names.mountain,]
+  boundary<-"Mountains"
+  # Create buffer if occurrences fall outside mountain polygons
+  if (all.occ.in.mountain == FALSE){       # If some occ are outside, create a buffer, with the minimum size to include all occ at steps of 0.2º
+    while(nrow(shape.species[my.mountain,]) != nrow(shape.species)){
+      my.mountain <- gBuffer(my.mountain, byid=T, width=0.2)
+      boundary<-"Mountains.buffered"
+    }
+  }       ######## NOTE THAT THE REST OF THE SCRIPT SHOULD MAKE USE OF THE "my.mountain" POLYGON LAYER...
+  bound<-as.data.frame(t(as.data.frame(s,boundary)))
+  boundaries<-rbind(boundaries,bound)
+  colnames(boundaries)<-c("Species","Boundaries")
+  #### 2.1 #### MODELING FOR PRESENT
+  #Bioclimatic variables are already downloaded and ready
+  setwd(~/climatechange/biovars).. #folder for CHELSA biovariables for present
+   unzip(dir())
+  variable.list <- Sys.glob("*.asc$") #ensure that is this is the format
+    predictors <- stack()
+    for(i in 1:nrow(variable.list)){
+    tempraster <- mask(crop(raster(predictors[i]),my.mountain),my.mountain)
+    predictors <- stack(predictors,tempraster)
+    file.remove(paste(toString(predictors[i]),".asc",sep=""))
+      }
+   species.coords<-coords(s)
+  test.presence<-extract(predictors,species.coords)
+  
+  corvar <- cor(test.presence, method="pearson")
+  nvars<- ecospat.npred (corvar, th=0.75)
+  test.absence<-sampleRandom(tempraster, nrow(species.coords), na.rm=TRUE, ext=tempraster,cells=FALSE, rowcol=FALSE, xy=TRUE, sp=FALSE, asRaster=FALSE)
+  test.absence$pres<-c(rep(0,nrow(test.absence)))
+  test.presence$pres<-c(rep(0,nrow(test.absence)))
+  test<-rbind(test.presence,test.absence)
+  test.response<-test[,1]
+  test.predictor<-test[,2:ncol(test)]
+  hier<-hier.part(test.response,test.predictor,family = "gaussian", gof = "RMSPE",barplot = FALSE) #we should cap here in 13 variables.
+  hier<-as.data.frame(hier$IJ)
+  hier <- hier[order(-hier$Total),] 
+  hier<-hier[1:nvars,]
+  predictors<-stack(rownames(hier))
+  #2.1.1 Calibration dataset
+        mask<-#?
+        species<-s
+        species.map<-as.data.frame(presence.absence.raster(mask,species.coords,raster.label=species),xy=TRUE)
+        rm(mask)
+        species.na<-species.map[,3]
+        species.na[species.na==0]="NA"
+        species.na<-cbind(species[,1:2],species.na)
+        colnames(species.na)<-c("x","y",s)
+        
+      myRespName <- s
+# the presence/absences data for our species
+myResp <- as.numeric(species.na[,myRespName])
+myResp[myResp == 2]  <- "NA"
+myResp<-as.numeric(myResp)
+# the XY coordinates of species data
+myRespXY <- species.na[,c("x","y")]
+
+
+        data<-BIOMOD_FormatingData(resp.var=myResp,
+                            expl.var=predictors,
+                            resp.xy = myRespXY,
+                            resp.name = myRespName,
+                            eval.resp.var = NULL,
+                            eval.expl.var = NULL,
+                            eval.resp.xy = NULL,
+                            PA.nb.rep = 5,
+                            PA.nb.absences = nrow(species.coords)*6, #this is the number which is optimal for me
+                            PA.strategy = 'random',
+                            na.rm = TRUE)
+       
+#### 5.2 MODELING ####
+        
+# Decide the type of modeling: SDM / ESM
+minimum.occ.SDM <- 15         # ATTENTION! Set the threshold of ocurrences to decide between SDM/ESM
+model.type <- ifelse (nrow(myRespXY) > minimum.occ.SDM, "SDM", "ESM") 
+        
+if (model.type == "SDM"){
+  models <- BIOMOD_Modeling(
+    data,
+    models = c('GBM','RF',"GLM","GAM","MARS","ANN"), #GAM is going to be trickier for species with a scarce number of points
+    #models.options = myBiomodOption, #check the script which has been set aside in github
+    NbRunEval=5,
+    DataSplit=90,
+    VarImport=1,
+    prevalence=0.5,
+    models.eval.meth = c("ROC",'TSS'),
+    SaveObj = FALSE,
+    rescal.all.models = FALSE,
+    do.full.models = FALSE,
+    modeling.id = paste(myRespName,"FirstModeling",sep="")
+  )
+  
+  evals<-get_evaluations(models,as.data.frame=TRUE)
+  write.table(evals,paste(s,"_evals.txt",sep="\t"))
+  importance<-get_variables_importance(models,as.data.frame=TRUE)
+  write.table(importance,paste(s,"_variables.importance.txt",sep="\t"))
+  
+  rm(data)
+  
+  proj.models<-BIOMOD_Projection(models,
+                                 new.env=predictors,
+                                 proj.name=s,
+                                 xy.new.env = NULL,
+                                 selected.models = 'all',
+                                 binary.meth = "TSS",
+                                 filtered.meth = "TSS","ROC",
+                                 compress = TRUE,
+                                 build.clamping.mask = FALSE)
+  
+  
+  rm(predictors)
+  
+  models.ensemble.mean.weight <- BIOMOD_EnsembleModeling( models,
+                                                         chosen.models = 'all',
+                                                         em.by = 'all',
+                                                         eval.metric = 'all',
+                                                         eval.metric.quality.threshold = c(0.8,0.8),
+                                                         models.eval.meth = c("ROC",'TSS'),
+                                                         prob.mean = FALSE,
+                                                         prob.cv = FALSE,
+                                                         prob.ci = FALSE,
+                                                         prob.ci.alpha = 0.05,
+                                                         prob.median = FALSE,
+                                                         committee.averaging = FALSE,
+                                                         prob.mean.weight = TRUE,
+                                                         prob.mean.weight.decay = 'proportional',
+                                                         VarImport = 1)
+  
+  ensemble.pres.mean.weight<-BIOMOD_EnsembleForecasting( models.ensemble.mean.weight,
+                                                         projection.output = proj.models,
+                                                         selected.models = 'all',
+                                                         binary.meth = "TSS",
+                                                         filtered.meth = c("ROC",'TSS'),
+                                                         total.consensus=TRUE,
+                                                         compress = TRUE)
+  
+  # Does the following really get the present prediction in raster format? It seems to me that it just builds the object/file name
+  prediction.present<-paste("ensemble.pres.mean.weight@proj@val$",s,"_EMwmeanByTSS_mergedAlgo_mergedRun_mergedData") #this does not extract a binary prediction
+  writeRaster(prediction.present,paste(s,".pres.asc",sep="")) ###threshold techniques to choose
+} 
+if (model.type == "ESM"){
+  models <- ecospat.ESM.Modeling(
+    data,
+    models = c('GBM','RF',"GLM","GAM","MARS","ANN"), #GAM is going to be trickier for species with a scarce number of points
+    #models.options = myBiomodOption, #check the script which has been set aside in github
+    NbRunEval=5,
+    DataSplit=90,
+    DataSplitTable = NULL,
+    weighting.score=c("AUC",'TSS'),   # They call it AUC instead of ROC; This parameter is used to filter the models that are used in the ensemble to combine different modeling techniques (GBM, RF, ...)
+    parallel=TRUE
+  )
+  
+  evals<-get_evaluations(models,as.data.frame=TRUE)
+  write.table(evals,paste(s,"_evals.txt",sep="\t"))
+  importance<-get_variables_importance(models,as.data.frame=TRUE)
+  write.table(importance,paste(s,"_variables.importance.txt",sep="\t"))
+  
+  rm(data)
+  
+  proj.models<-ecospat.ESM.Projection(ESM.modeling.output=models,
+                                      new.env=predictors,
+                                      parallel=TRUE)
+  
+  rm(predictors)
+ 
+  models.ensemble.mean.weight <- ecospat.ESM.EnsembleModeling(ESM.modeling.output=models,
+                                                             weighting.score=c("SomersD"),   # This is the parameter to combine bivariate models. It is different than the one used to combine modeling techniques (GCM, RF...). I set it to SomersD following the methodology in Breiner 2015, but there are other options...
+                                                             threshold=0) # Threshold for SomersD
+  
+  # Ensemble Forecast: I had problems using the package function and had to change a line in its code. For this reason, I re-define the function with the changed code and use this new version to forecast.
+  our.ecospat.ESM.EnsembleProjection <- function(ESM.prediction.output, ESM.EnsembleModeling.output) {
+    models <- ESM.prediction.output$models
+    weights <- ESM.EnsembleModeling.output$weights
+    weights.EF <- ESM.EnsembleModeling.output$weights.EF
+    NbRunEval <- ESM.prediction.output$NbRunEval
+    pred.biva <- ESM.prediction.output$pred.biva
+    new.env.raster <- ESM.prediction.output$new.env.raster
+    failed.mod <- grep(paste("RUN", NbRunEval + 1, sep = ""), unlist(ESM.EnsembleModeling.output$failed), value = T)
+    if (!exists("new.env")) {stop("new.env object required!")}
+    if (new.env.raster) 
+      # pred.biva <- grep("gri", pred.biva, value = T)
+      pred.biva <- grep("\\.gri\\b", pred.biva, value = T)  # This is the line that was causing problem to me. The grep in ecospat using only "gri" was selecting more names than supposed. I added "\\.", so the dot in also consider to proper select the needed models
+    if (!new.env.raster) 
+      pred.biva <- grep("RData", pred.biva, value = T)
+    biva.proj <- list()
+    for (i in 1:length(pred.biva)) {
+      if (!new.env.raster) {
+        biva.proj[[i]] <- as.data.frame(get(load(pred.biva[i])))
+        colnames(biva.proj[[i]]) <- gsub("AllData", "BIOMOD", colnames(biva.proj[[i]]))
+        colnames(biva.proj[[i]]) <- gsub(paste("RUN", NbRunEval + 1, sep = ""), "ESM", colnames(biva.proj[[i]]))
+        colnames(biva.proj[[i]]) <- paste(colnames(biva.proj[[i]]), i, sep = ".")
+      }
+      if (new.env.raster) {biva.proj[[i]] <- stack(pred.biva[i])}
+    }
+    if (!new.env.raster) {
+      pred.ESM <- list()
+      biva.st <- do.call(cbind, biva.proj)
+      for (i in 1:length(models)) {
+        if (length(models) > 1) {
+          wm <- weights[grep(models[i], names(weights))][names(weights[grep(models[i], names(weights))]) %in% colnames(biva.st[, grep(models[i], colnames(biva.st))])]
+          pred.ESM[[i]] <- apply(biva.st[, grep(models[i], colnames(biva.st))], 1, function(x) weighted.mean(x, wm, na.rm = T))
+        }
+        else {
+          pred.ESM[[i]] <- apply(biva.st[, grep(models[i], colnames(biva.st))], 1, function(x) weighted.mean(x, wm, na.rm = T))
+        }
+      }
+      rm(biva.st)
+      pred.ESM <- as.data.frame(do.call(cbind, pred.ESM))
+      colnames(pred.ESM) <- models
+    }
+    if (new.env.raster) {
+      pred.ESM <- stack(biva.proj)
+      for (i in 1:length(models)) {
+        assign(models[i], pred.ESM[[grep(models[i], names(pred.ESM))]])
+        n <- grep(models[i], failed.mod, value = T)
+        if (length(models) > 1) {
+          weights.mod <- weights[grep(models[i], names(weights))]
+          if (length(n) > 0) {
+            weights.mod <- weights.mod[!names(weights.mod) %in% paste(models[i], ".", unlist(strsplit(n, "_"))[((1:length(n)) * 4) - 3], sep = "")]
+            assign(models[i], round(weighted.mean(get(models[i]), weights.mod, na.rm = T)))
+          }
+          else {
+            assign(models[i], round(weighted.mean(get(models[i]), weights.mod, na.rm = T)))
+          }
+        }
+        else {
+          if (length(n) > 0) {
+            weights.mod <- weights[grep(paste(unlist(strsplit(n, "_"))[1], "_", sep = ""), paste(names(weights), "_", sep = ""), invert = T)]
+            assign(models[i], round(weighted.mean(get(models[i]), weights.mod, na.rm = T)))
+          }
+          else {
+            assign(models[i], round(weighted.mean(get(models[i]), weights, na.rm = T)))
+          }
+        }
+      }
+      pred.ESM <- stack(mget(models))[[order(models)]]
+      do.call("rm", as.list(models))
+    }
+    if (length(models) > 1) {
+      if (new.env.raster) {
+        ESM.EF <- round(weighted.mean(pred.ESM[[names(pred.ESM)]], weights.EF[order(weights.EF[, 1]), 2], na.rm = T))
+        pred.ESM <- stack(pred.ESM, ESM.EF)
+        names(pred.ESM) <- c(names(pred.ESM)[1:(nlayers(pred.ESM) - 1)], "EF")
+        rm(ESM.EF)
+      }
+      if (!new.env.raster) {
+        pred.ESM$EF <- apply(pred.ESM, 1, function(x) weighted.mean(x, weights.EF[order(weights.EF[, 1]), 2], na.rm = T))
+      }
+      if (!new.env.raster) {
+        pred.ESM <- round(pred.ESM)
+      }
+    }
+    return(ESM.projections = pred.ESM)
+  }
+  
+  ensemble.pres.mean.weight<-our.ecospat.ESM.EnsembleProjection(ESM.EnsembleModeling.output=proj.models,
+                                                                ESM.prediction.output=models.ensemble.mean.weight)
+  
+  # prediction.present<-paste("ensemble.pres.mean.weight@proj@val$",s,"_EMwmeanByTSS_mergedAlgo_mergedRun_mergedData") #this does not extract a binary prediction
+  prediction.present <- ensemble.pres.mean.weight$EF
+  writeRaster(prediction.present, paste(s,".pres.asc",sep="")) ###threshold techniques to choose
+}
+
+  #### 2.2 #### FUTURE MODELING
+  models<-c("csiro","miroc")
+  rcps<-c(26,60,85)
+  years<-c(30,50,80)
+  for (m in models){
+  for (r in rcps){
+  for (y in years){
+  #### 2.2 For each climate scenario, begin reading shapefiles and preparing stack of predictors
+    setwd(paste(XXXX,m,r,y)) #go to the folder were bioclimatic variables for the future are
+         
+      biov<-biov()#this function reads and crops the raw monthly variables and computes and returns biovariables
+      selected.predictors<-rownames(hier)
+      predictors<-stack()   
+      for (sel in selected.predictors){
+      tempraster<-biov[sel]
+      predictors <- stack(predictors,tempraster)
+      }
+      proj.models<-BIOMOD_Projection(models,
+              new.env=predictors,
+              proj.name=s,
+              xy.new.env = NULL,
+              selected.models = 'all',
+              binary.meth = "TSS",
+              filtered.meth = "TSS","ROC",
+              compress = TRUE,
+              build.clamping.mask = FALSE)
+              
+      models.ensemble.mean.weight<- BIOMOD_EnsembleModeling( models,
+                                            chosen.models = 'all',
+                                            em.by = 'all',
+                                            eval.metric = 'all',
+                                            eval.metric.quality.threshold = c(0.8,0.8),
+                                            models.eval.meth = c("ROC",'TSS'),
+                                            prob.mean = FALSE,
+                                            prob.cv = FALSE,
+                                            prob.ci = FALSE,
+                                            prob.ci.alpha = 0.05,
+                                            prob.median = FALSE,
+                                            committee.averaging = FALSE,
+                                            prob.mean.weight = TRUE,
+                                            prob.mean.weight.decay = 'proportional',
+                                             VarImport = 0)
+      ensemble.mean.weight<-BIOMOD_EnsembleForecasting( models.ensemble.mean.weight,
+                                           projection.output = proj.models,
+                                           selected.models = 'all',
+                                           binary.meth = "TSS",
+                                           filtered.meth = c("ROC",'TSS'),
+                                           total.consensus=TRUE,
+                                           compress = TRUE)
+      prediction.present<-paste("ensemble.mean.weight@proj@val$",s,"_EMwmeanByTSS_mergedAlgo_mergedRun_mergedData") #this does not extract a binary prediction
+      writeRaster(prediction.present,paste(s,m,r,y,".pres.asc",sep=""))
+    }#close temporal horizon loop
+    }# close rcps loop
+    }#close general circulation models loop
+  } #close all the loop. This one closes for (s in species list)
+    
+    
+  
+ 
